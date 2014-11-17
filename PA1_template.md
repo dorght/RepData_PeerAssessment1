@@ -1,16 +1,12 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 Welcome to my Peer Review Assignment 1 for Reproducible Research class.
 
 Make sure the working directory is set to the location of the activity.csv file.
 
 First off the activity.csv file is read in.
-```{r}
+
+```r
 library("lattice")
 
 datafile <- "activity.csv"
@@ -24,7 +20,8 @@ and added as a column to the data.
 Additionally a column is added to hold a logical, TRUE or FALSE, value if the
 steps field is marked na.
 
-```{r}
+
+```r
 stepdata$datetime <- as.POSIXct(paste(stepdata$date, stepdata$interval%/%100,
                                       stepdata$interval%%100),
                                 "%Y-%m-%d %H %M", tz = "GMT")
@@ -40,17 +37,35 @@ total within the bar's range. Days that had all na's are not used in the
 histogram since they their sum is 0, which is not a valid count of activity for
 the day.
 
-```{r}
+
+```r
 dailysteps <- tapply(stepdata$steps, stepdata$date, sum, na.rm = TRUE)
 allnas <- tapply(stepdata$isna, stepdata$date, all)
 
 # don't use the days with all na's, since the sum will be 0 rather then na
 hist(dailysteps[!allnas], breaks = 10,
      main = "Histogram of Total Steps per Day", xlab = "Total Daily Steps")
+```
 
+![plot of chunk unnamed-chunk-3](./PA1_template_files/figure-html/unnamed-chunk-3.png) 
+
+```r
 cat("The mean steps per day is: ", mean(dailysteps))
-cat("The median steps per day is: ", median(dailysteps))
+```
 
+```
+## The mean steps per day is:  9354
+```
+
+```r
+cat("The median steps per day is: ", median(dailysteps))
+```
+
+```
+## The median steps per day is:  10395
+```
+
+```r
 rm(allnas)               # housekeeping
 ```
 
@@ -58,7 +73,8 @@ tapply is once again used to calculate the mean number of steps taken for each
 time interval across all the days. The maximum activity is noted both in the
 graph and on a line of output.
 
-```{r}
+
+```r
 steps <- tapply(stepdata$steps, stepdata$interval, mean, na.rm = TRUE)
 
 time <- as.integer(names(steps))
@@ -82,9 +98,16 @@ points(timeofmax, maxsteps, pch=1, col = "mediumblue")
 text(timeofmax, maxsteps,
      paste0("(",format(timeofmax, "%H:%M"), ", ", round(maxsteps, 0), ")" ),
      pos=4 , cex = 0.67, col = "mediumblue")
+```
 
+![plot of chunk unnamed-chunk-4](./PA1_template_files/figure-html/unnamed-chunk-4.png) 
+
+```r
 cat("On average at ", format(timeofmax, "%H:%M"), " the maximum number of steps, ", round(maxsteps, 0), ", occurred.", sep = "")
+```
 
+```
+## On average at 08:35 the maximum number of steps, 206, occurred.
 ```
 
 A seperate data.frame is created from the original. The mean daily activity
@@ -97,10 +120,16 @@ day. This assumption appears to hold for this activity file since
 As above the number of steps for each day is again computed including the 
 imputed data and a histogram generated.
 
-```{r}
- 
-cat("There are", sum(stepdata$isna), "missing step values in the dataset")
 
+```r
+cat("There are", sum(stepdata$isna), "missing step values in the dataset")
+```
+
+```
+## There are 2304 missing step values in the dataset
+```
+
+```r
 # to fill in missing data use the mean for that time step.
 # timesteps holds one days info, so will be repeated for each day in stepdata
 imputeddata <- stepdata
@@ -112,10 +141,24 @@ dailyimputsteps <- tapply(imputeddata$imputedsteps, imputeddata$date,
                           sum, na.rm = FALSE)
 hist(dailyimputsteps, breaks = 10,
      main = "Histogram of Total Steps per Day", xlab = "Total Daily Steps")
+```
 
+![plot of chunk unnamed-chunk-5](./PA1_template_files/figure-html/unnamed-chunk-5.png) 
+
+```r
 cat("The mean steps per day is: ", mean(dailyimputsteps))
-cat("The median steps per day is: ", median(dailyimputsteps))
+```
 
+```
+## The mean steps per day is:  10766
+```
+
+```r
+cat("The median steps per day is: ", median(dailyimputsteps))
+```
+
+```
+## The median steps per day is:  10766
 ```
 
 Days are then factored as a weekend or weekday.
@@ -123,7 +166,8 @@ A lattice plot comparing the weekend and weekday activity is then presented.
 (eeks look at the time, gotta submit now. Panels looked fine in window but
 knitter puts them side by side?)
 
-```{r}
+
+```r
 imputeddata$weekday <- weekdays(imputeddata$datetime)
 imputeddata$weekday <- ifelse(imputeddata$weekday %in% c("Saturday", "Sunday"),
                               "weekend", "weekday")
@@ -149,3 +193,5 @@ xyplot(steps ~ timePOSIX | dayofweek, timeimputed, type = "l",
        scales = list(at = as.POSIXct(c("00","6","12","18","24"), "%H", tz = "GMT"),
                  labels = c("00:00","6:00","12:00","18:00","24:00")))
 ```
+
+![plot of chunk unnamed-chunk-6](./PA1_template_files/figure-html/unnamed-chunk-6.png) 
