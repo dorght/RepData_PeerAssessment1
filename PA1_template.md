@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 Welcome to my Peer Review Assignment 1 for Reproducible Research class.
 
@@ -47,7 +52,7 @@ hist(dailysteps[!allnas], breaks = 10,
      main = "Histogram of Total Steps per Day", xlab = "Total Daily Steps")
 ```
 
-![plot of chunk unnamed-chunk-3](./PA1_template_files/figure-html/unnamed-chunk-3.png) 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
 
 ```r
 cat("The mean steps per day is: ", mean(dailysteps))
@@ -100,7 +105,7 @@ text(timeofmax, maxsteps,
      pos=4 , cex = 0.67, col = "mediumblue")
 ```
 
-![plot of chunk unnamed-chunk-4](./PA1_template_files/figure-html/unnamed-chunk-4.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
 
 ```r
 cat("On average at ", format(timeofmax, "%H:%M"), " the maximum number of steps, ", round(maxsteps, 0), ", occurred.", sep = "")
@@ -143,7 +148,7 @@ hist(dailyimputsteps, breaks = 10,
      main = "Histogram of Total Steps per Day", xlab = "Total Daily Steps")
 ```
 
-![plot of chunk unnamed-chunk-5](./PA1_template_files/figure-html/unnamed-chunk-5.png) 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
 
 ```r
 cat("The mean steps per day is: ", mean(dailyimputsteps))
@@ -163,8 +168,6 @@ cat("The median steps per day is: ", median(dailyimputsteps))
 
 Days are then factored as a weekend or weekday.
 A lattice plot comparing the weekend and weekday activity is then presented.
-(eeks look at the time, gotta submit now. Panels looked fine in window but
-knitter puts them side by side?)
 
 
 ```r
@@ -191,7 +194,9 @@ colnames(timeimputed)[1] <- "timePOSIX"
 
 xyplot(steps ~ timePOSIX | dayofweek, timeimputed, type = "l", 
        scales = list(at = as.POSIXct(c("00","6","12","18","24"), "%H", tz = "GMT"),
-                 labels = c("00:00","6:00","12:00","18:00","24:00")))
+                 labels = c("00:00","6:00","12:00","18:00","24:00")),
+       layout = c(1,2),
+       xlab = "Time of Day (hh:mm)", ylab = "Average Steps")
 ```
 
-![plot of chunk unnamed-chunk-6](./PA1_template_files/figure-html/unnamed-chunk-6.png) 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 

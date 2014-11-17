@@ -120,8 +120,6 @@ cat("The median steps per day is: ", median(dailyimputsteps))
 
 Days are then factored as a weekend or weekday.
 A lattice plot comparing the weekend and weekday activity is then presented.
-(eeks look at the time, gotta submit now. Panels looked fine in window but
-knitter puts them side by side?)
 
 ```{r}
 imputeddata$weekday <- weekdays(imputeddata$datetime)
@@ -147,5 +145,7 @@ colnames(timeimputed)[1] <- "timePOSIX"
 
 xyplot(steps ~ timePOSIX | dayofweek, timeimputed, type = "l", 
        scales = list(at = as.POSIXct(c("00","6","12","18","24"), "%H", tz = "GMT"),
-                 labels = c("00:00","6:00","12:00","18:00","24:00")))
+                 labels = c("00:00","6:00","12:00","18:00","24:00")),
+       layout = c(1,2),
+       xlab = "Time of Day (hh:mm)", ylab = "Average Steps")
 ```
