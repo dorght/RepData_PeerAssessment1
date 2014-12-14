@@ -21,8 +21,8 @@ stepdata <- read.csv(datafile, header = TRUE, comment.char = "")
 
 For future use the date and time fields are combined into a single POSIX format
 and added as a column to the data.
-Additionally a column is added to hold a logical, TRUE or FALSE, value if the
-steps field is marked na.
+Additionally a column is added to hold a logical TRUE value if the
+steps field is marked na, FALSE otherwise.
 
 ```{r}
 stepdata$datetime <- as.POSIXct(paste(stepdata$date, stepdata$interval%/%100,
@@ -30,6 +30,8 @@ stepdata$datetime <- as.POSIXct(paste(stepdata$date, stepdata$interval%/%100,
                                 "%Y-%m-%d %H %M", tz = "GMT")
 stepdata$isna <- is.na(stepdata$steps)
 ```
+
+##Mean Total Number of Steps per Day
 
 tapply is used to sum the total steps for each day, na's are removed before
 summing.
@@ -40,7 +42,7 @@ total within the bar's range. Days that had all na's are not used in the
 histogram since they their sum is 0, which is not a valid count of activity for
 the day.
 
-```{r}
+```{r step_histogram}
 dailysteps <- tapply(stepdata$steps, stepdata$date, sum, na.rm = TRUE)
 allnas <- tapply(stepdata$isna, stepdata$date, all)
 
@@ -54,25 +56,33 @@ cat("The median steps per day is: ", median(dailysteps))
 rm(allnas)               # housekeeping
 ```
 
+##Average Daily Activity Pattern
+
 tapply is once again used to calculate the mean number of steps taken for each
 time interval across all the days. The maximum activity is noted both in the
 graph and on a line of output.
 
-```{r}
+```{r avg_daily_activity}
 steps <- tapply(stepdata$steps, stepdata$interval, mean, na.rm = TRUE)
 
+# extract the time from the name tapply assigned in variable steps
+# 0001-01-01 is used to mark the date as arbitrary, but not the time info
 time <- as.integer(names(steps))
-timePOSIX <- as.POSIXct(paste(time %/% 100, time %% 100, sep = " "),
-                   "%H %M", tz = "GMT")
+timePOSIX <- as.POSIXct(paste("0001-01-01", time %/% 100, time %% 100),
+                   "%Y-%m-%d %H %M", tz = "GMT")
 timesteps <- data.frame(steps, time, timePOSIX)
 
 rm(steps, time, timePOSIX)         # housekeeping
 
+timetics = as.POSIXct(c("0001-01-01 00","0001-01-01 06","0001-01-01 12",
+                          "0001-01-01 18","0001-01-01 24"), 
+                         "%Y-%m-%d %H", tz = "GMT")
+
 plot(timesteps$timePOSIX, timesteps$steps, type = "l", xaxt = "n",
      xlab = "Time of Day (hh:mm)", ylab = "5 Minute Step Average",
      main = "Average Daily Activity")
-axis(1, at = as.POSIXct(c("00","6","12","18","24"), "%H", tz = "GMT"),
-     labels = c("00:00","6:00","12:00","18:00","24:00"))
+axis(1, at = timetics,
+     labels = c("00:00","06:00","12:00","18:00","24:00"))
 
 maxsteps <- which.max(timesteps$steps)
 timeofmax <- timesteps$timePOSIX[maxsteps]
@@ -87,27 +97,32 @@ cat("On average at ", format(timeofmax, "%H:%M"), " the maximum number of steps,
 
 ```
 
+##Imputing Missing Values
+
 A seperate data.frame is created from the original. The mean daily activity
 calculated above for each time interval is used to replace missing values in
 the original data.
 The code assumes that all 288 (24 * 60 / 5) time intervals are present for each
 day. This assumption appears to hold for this activity file since
-17568 / 288 = 61 even.
+17568 lines / 288 intervals = 61 even.
 
 As above the number of steps for each day is again computed including the 
 imputed data and a histogram generated.
 
-```{r}
+```{r impute_missing}
  
 cat("There are", sum(stepdata$isna), "missing step values in the dataset")
 
-# to fill in missing data use the mean for that time step.
-# timesteps holds one days info, so will be repeated for each day in stepdata
 imputeddata <- stepdata
+
+# to fill in missing data use the mean for that time step.
+# the entire imputedsteps column is initialized using the mean data to fill it 
 imputeddata$imputedsteps <- timesteps$steps
+
+# if the data is not na, then the mean data is overwritten with the valid value
 imputeddata$imputedsteps <- ifelse(imputeddata$isna, 
                                    imputeddata$imputedsteps, imputeddata$steps)
-# 
+
 dailyimputsteps <- tapply(imputeddata$imputedsteps, imputeddata$date,
                           sum, na.rm = FALSE)
 hist(dailyimputsteps, breaks = 10,
@@ -118,21 +133,27 @@ cat("The median steps per day is: ", median(dailyimputsteps))
 
 ```
 
+##Differences in Weekday / Weekend Activity Patterns
+
 Days are then factored as a weekend or weekday.
 A lattice plot comparing the weekend and weekday activity is then presented.
 
-```{r}
+```{r weekday_weekend}
+
+# find day of week for each date, then change it to either weekday or weekend
 imputeddata$weekday <- weekdays(imputeddata$datetime)
 imputeddata$weekday <- ifelse(imputeddata$weekday %in% c("Saturday", "Sunday"),
                               "weekend", "weekday")
 imputeddata$weekday <- as.factor(imputeddata$weekday)
 
+# use tapply to find mean number of steps taken on weekdays and then on weekends
 weekdaysteps <- tapply(imputeddata$imputedsteps[imputeddata$weekday == "weekday"],
                        imputeddata$interval[imputeddata$weekday == "weekday"],
                        mean)
 weekendsteps <- tapply(imputeddata$imputedsteps[imputeddata$weekday == "weekend"],
                        imputeddata$interval[imputeddata$weekday == "weekend"],
                        mean)
+
 timeimputed <- data.frame(timesteps$timePOSIX, weekdaysteps)
 timeimputed$dayofweek <- as.factor("weekday")
 colnames(timeimputed)[2] <- "steps"
@@ -144,8 +165,8 @@ timeimputed <- rbind(timeimputed, timeimputed2)
 colnames(timeimputed)[1] <- "timePOSIX"
 
 xyplot(steps ~ timePOSIX | dayofweek, timeimputed, type = "l", 
-       scales = list(at = as.POSIXct(c("00","6","12","18","24"), "%H", tz = "GMT"),
-                 labels = c("00:00","6:00","12:00","18:00","24:00")),
+        scales = list(x = list(at = timetics,
+                      labels = c("00:00","6:00","12:00","18:00","24:00"))),
        layout = c(1,2),
        xlab = "Time of Day (hh:mm)", ylab = "Average Steps")
 ```
