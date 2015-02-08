@@ -19,8 +19,8 @@ datafile <- paste0(getwd(), "/", datafile)
 stepdata <- read.csv(datafile, header = TRUE, comment.char = "")
 ```
 
-For future use the date and time fields are combined into a single POSIX format
-and added as a column to the data.
+A column is added to combine the date and time fields into a single POSIX format
+date number.
 Additionally a column is added to hold a logical TRUE value if the
 steps field is marked na, FALSE otherwise.
 
@@ -65,7 +65,7 @@ graph and on a line of output.
 ```{r avg_daily_activity}
 steps <- tapply(stepdata$steps, stepdata$interval, mean, na.rm = TRUE)
 
-# extract the time from the name tapply assigned in variable steps
+# extract the time from the names the tapply function assigned in variable steps
 # 0001-01-01 is used to mark the date as arbitrary, but not the time info
 time <- as.integer(names(steps))
 timePOSIX <- as.POSIXct(paste("0001-01-01", time %/% 100, time %% 100),
@@ -135,7 +135,7 @@ cat("The median steps per day is: ", median(dailyimputsteps))
 
 ##Differences in Weekday / Weekend Activity Patterns
 
-Days are then factored as a weekend or weekday.
+The date is used to factor each day as a weekend or weekday.
 A lattice plot comparing the weekend and weekday activity is then presented.
 
 ```{r weekday_weekend}
