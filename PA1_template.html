@@ -64,7 +64,7 @@ datafile &lt;- &quot;activity.csv&quot;
 datafile &lt;- paste0(getwd(), &quot;/&quot;, datafile)
 
 stepdata &lt;- read.csv(datafile, header = TRUE, comment.char = &quot;&quot;)</code></pre>
-<p>For future use the date and time fields are combined into a single POSIX format and added as a column to the data. Additionally a column is added to hold a logical TRUE value if the steps field is marked na, FALSE otherwise.</p>
+<p>A column is added to combine the date and time fields into a single POSIX format date number. Additionally a column is added to hold a logical TRUE value if the steps field is marked na, FALSE otherwise.</p>
 <pre class="r"><code>stepdata$datetime &lt;- as.POSIXct(paste(stepdata$date, stepdata$interval%/%100,
                                       stepdata$interval%%100),
                                 &quot;%Y-%m-%d %H %M&quot;, tz = &quot;GMT&quot;)
@@ -91,7 +91,7 @@ hist(dailysteps[!allnas], breaks = 10,
 <p>tapply is once again used to calculate the mean number of steps taken for each time interval across all the days. The maximum activity is noted both in the graph and on a line of output.</p>
 <pre class="r"><code>steps &lt;- tapply(stepdata$steps, stepdata$interval, mean, na.rm = TRUE)
 
-# extract the time from the name tapply assigned in variable steps
+# extract the time from the names the tapply function assigned in variable steps
 # 0001-01-01 is used to mark the date as arbitrary, but not the time info
 time &lt;- as.integer(names(steps))
 timePOSIX &lt;- as.POSIXct(paste(&quot;0001-01-01&quot;, time %/% 100, time %% 100),
@@ -150,7 +150,7 @@ hist(dailyimputsteps, breaks = 10,
 </div>
 <div id="differences-in-weekday-weekend-activity-patterns" class="section level2">
 <h2>Differences in Weekday / Weekend Activity Patterns</h2>
-<p>Days are then factored as a weekend or weekday. A lattice plot comparing the weekend and weekday activity is then presented.</p>
+<p>The date is used to factor each day as a weekend or weekday. A lattice plot comparing the weekend and weekday activity is then presented.</p>
 <pre class="r"><code># find day of week for each date, then change it to either weekday or weekend
 imputeddata$weekday &lt;- weekdays(imputeddata$datetime)
 imputeddata$weekday &lt;- ifelse(imputeddata$weekday %in% c(&quot;Saturday&quot;, &quot;Sunday&quot;),
